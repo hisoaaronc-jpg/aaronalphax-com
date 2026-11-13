@@ -1,0 +1,155 @@
+# 南海数港 Nanhai Digital Port — LiteLLM 网关路由配置
+# 统一 OpenAI 兼容接口：http://<服务器>:4000/v1/chat/completions
+# 客户只用一个 Nanhai API Key + 模型名即可调用中美所有模型
+# 上游 API Key 全部走环境变量（os.environ/...），不要把真实 Key 写进本文件
+# 模型名与价格请在签约前到各厂商官方价格页重核，本文件只做路由示例
+
+model_list:
+  # ================= 美国模型 =================
+  - model_name: gpt-4o
+    litellm_params:
+      model: openai/gpt-4o
+      api_key: os.environ/OPENAI_API_KEY
+  - model_name: gpt-4o-mini
+    litellm_params:
+      model: openai/gpt-4o-mini
+      api_key: os.environ/OPENAI_API_KEY
+  - model_name: claude-sonnet-4-5
+    litellm_params:
+      model: anthropic/claude-sonnet-4-5
+      api_key: os.environ/ANTHROPIC_API_KEY
+  - model_name: claude-haiku-4-5
+    litellm_params:
+      model: anthropic/claude-haiku-4-5
+      api_key: os.environ/ANTHROPIC_API_KEY
+  - model_name: gemini-2.5-flash
+    litellm_params:
+      model: gemini/gemini-2.5-flash
+      api_key: os.environ/GEMINI_API_KEY
+  - model_name: gemini-2.5-pro
+    litellm_params:
+      model: gemini/gemini-2.5-pro
+      api_key: os.environ/GEMINI_API_KEY
+  - model_name: grok-4
+    litellm_params:
+      model: xai/grok-4
+      api_key: os.environ/XAI_API_KEY
+
+  # ================= 中国模型 =================
+  - model_name: deepseek-chat
+    litellm_params:
+      model: deepseek/deepseek-chat
+      api_key: os.environ/DEEPSEEK_API_KEY
+  - model_name: deepseek-reasoner
+    litellm_params:
+      model: deepseek/deepseek-reasoner
+      api_key: os.environ/DEEPSEEK_API_KEY
+  - model_name: qwen-max
+    litellm_params:
+      model: openai/qwen-max
+      api_base: https://dashscope.aliyuncs.com/compatible-mode/v1
+      api_key: os.environ/DASHSCOPE_API_KEY
+  - model_name: qwen-plus
+    litellm_params:
+      model: openai/qwen-plus
+      api_base: https://dashscope.aliyuncs.com/compatible-mode/v1
+      api_key: os.environ/DASHSCOPE_API_KEY
+  - model_name: qwen-turbo
+    litellm_params:
+      model: openai/qwen-turbo
+      api_base: https://dashscope.aliyuncs.com/compatible-mode/v1
+      api_key: os.environ/DASHSCOPE_API_KEY
+  - model_name: glm-4-plus
+    litellm_params:
+      model: zhipuai/glm-4-plus
+      api_key: os.environ/ZHIPU_API_KEY
+  - model_name: glm-4.7-flash
+    litellm_params:
+      model: zhipuai/glm-4.7-flash
+      api_key: os.environ/ZHIPU_API_KEY
+  - model_name: moonshot-v1-8k
+    litellm_params:
+      model: openai/moonshot-v1-8k
+      api_base: https://api.moonshot.cn/v1
+      api_key: os.environ/MOONSHOT_API_KEY
+  - model_name: moonshot-v1-32k
+    litellm_params:
+      model: openai/moonshot-v1-32k
+      api_base: https://api.moonshot.cn/v1
+      api_key: os.environ/MOONSHOT_API_KEY
+  - model_name: moonshot-v1-128k
+    litellm_params:
+      model: openai/moonshot-v1-128k
+      api_base: https://api.moonshot.cn/v1
+      api_key: os.environ/MOONSHOT_API_KEY
+  - model_name: ernie-4.0-8k
+    litellm_params:
+      model: openai/ernie-4.0-8k
+      api_base: https://qianfan.baidubce.com/v2
+      api_key: os.environ/BAIDU_API_KEY
+  - model_name: ernie-3.5-8k
+    litellm_params:
+      model: openai/ernie-3.5-8k
+      api_base: https://qianfan.baidubce.com/v2
+      api_key: os.environ/BAIDU_API_KEY
+
+  # ================= 南海精选别名（给客户的推荐路由） =================
+  # 别名指向同一个上游模型，方便按场景推不同的默认模型；客户也可直接用上面的原名
+  - model_name: nanhai-chat
+    litellm_params:
+      model: openai/gpt-4o
+      api_key: os.environ/OPENAI_API_KEY
+  - model_name: nanhai-chat-cn
+    litellm_params:
+      model: openai/qwen-max
+      api_base: https://dashscope.aliyuncs.com/compatible-mode/v1
+      api_key: os.environ/DASHSCOPE_API_KEY
+  - model_name: nanhai-reasoning
+    litellm_params:
+      model: deepseek/deepseek-reasoner
+      api_key: os.environ/DEEPSEEK_API_KEY
+  - model_name: nanhai-fast
+    litellm_params:
+      model: openai/gpt-4o-mini
+      api_key: os.environ/OPENAI_API_KEY
+
+# 故障转移：主模型失败时自动切备用（同类模型之间）
+# —— 取自 Portkey Gateway 的精华：故障转移 / 负载均衡
+# Portkey 以“快速、可靠路由”见长，fallbacks + retries 是它最受用户欢迎的功能；
+# LiteLLM 原生支持同样的 fallbacks，这里直接用 LiteLLM 的方式实现，不搬 Portkey 的代码。
+fallbacks:
+  - gpt-4o: ["claude-sonnet-4-5", "gemini-2.5-pro"]
+  - deepseek-chat: ["qwen-max", "glm-4-plus"]
+  - qwen-max: ["deepseek-chat", "glm-4-plus"]
+
+general_settings:
+  master_key: os.environ/LITELLM_MASTER_KEY
+  database_url: os.environ/DATABASE_URL
+  # 启用后 Admin UI 可见；生产环境建议只在内网开放 4000 端口
+  store_model_in_db: true
+
+litellm_settings:
+  # 请求失败自动重试 2 次（上游偶发 5xx / 限流时）
+  # —— 取自 Portkey Gateway 的精华：重试 / 故障转移（同 fallbacks 一节）
+  num_retries: 2
+  # 超过 60 秒无响应即判失败、走 fallback
+  request_timeout: 60
+  # —— 取自 Portkey Gateway 的精华：语义缓存（相同提示词直接命中缓存，不重复花钱调上游）
+  # Portkey 的缓存是它最受用户欢迎的功能之一；LiteLLM 原生支持 Redis 缓存，
+  # 这里直接开启，缓存后端就是 docker-compose.yml 里的 redis 服务。
+  cache: true
+  cache_params:
+    type: redis
+    host: os.environ/REDIS_HOST
+    port: 6379
+
+# —— 取自 Portkey Gateway 的精华：护栏（Guardrails，内容安全检查）
+# Portkey 内置 50+ 护栏（提示词注入、敏感内容、PII 等）；LiteLLM 同样支持 guardrails 配置。
+# 下面是示例（默认注释掉）：开通时把 guardrail 提供商的 Key 填进环境变量、取消注释即可启用。
+# 不默认开启的原因：护栏需要额外提供商（Presidio / Lakera / Bedrock 等），不要为演示多接一个账单。
+# guardrails:
+#   - guardrail_name: "nanhai-content-guard"
+#     litellm_params:
+#       guardrail: "presidio"
+#       mode: "pre_call"
+#       default_on: true
