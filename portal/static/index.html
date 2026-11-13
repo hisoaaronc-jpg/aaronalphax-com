@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nanhai Digital Port — 南海数港 · 客户门户</title>
+<style>
+  :root{--navy:#0B1F3A;--gold:#C9A24B;--beige:#F4F1EA;--ink:#1F2937;--slate:#6B7280;--mist:#D9DEE7;--white:#fff;--red:#B42318;--green:#1E7B4D}
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:"Segoe UI",Calibri,Arial,"Microsoft YaHei",sans-serif;color:var(--ink);background:var(--beige);line-height:1.6}
+  a{color:var(--navy)}
+  .wrap{max-width:1060px;margin:0 auto;padding:0 22px}
+  header{background:var(--navy);color:#fff}
+  .nav{display:flex;align-items:center;justify-content:space-between;height:60px}
+  .brand{display:flex;align-items:center;gap:10px}
+  .mark{width:34px;height:34px;border:2px solid var(--gold);border-radius:6px;display:flex;align-items:center;justify-content:center;font-family:Georgia,serif;font-weight:bold;font-size:18px}
+  .brand b{font-size:16px;letter-spacing:.3px}
+  .brand span{font-size:11px;color:#9fb0c3;letter-spacing:2px}
+  .nav button{background:transparent;border:1px solid #3a4f6d;color:#d7e0ec;border-radius:6px;padding:7px 14px;font-size:13px;cursor:pointer}
+  .nav button:hover{border-color:var(--gold);color:#fff}
+  main{padding:36px 0 60px}
+  .card{background:#fff;border:1px solid var(--mist);border-radius:12px;padding:28px;margin-bottom:22px}
+  h1{font-family:Georgia,serif;font-size:26px;color:var(--navy)}
+  h2{font-family:Georgia,serif;font-size:20px;color:var(--navy);margin-bottom:12px}
+  h3{font-size:15px;color:var(--navy);margin-bottom:8px}
+  .muted{color:var(--slate);font-size:14px}
+  label{display:block;font-size:13px;font-weight:600;margin:14px 0 5px}
+  input,select{width:100%;padding:11px 12px;border:1px solid var(--mist);border-radius:6px;font-size:15px}
+  input:focus{outline:2px solid var(--gold);border-color:var(--gold)}
+  .btn{display:inline-block;background:var(--navy);color:#fff;border:none;padding:12px 26px;border-radius:6px;font-size:15px;font-weight:600;cursor:pointer;margin-top:18px}
+  .btn.gold{background:var(--gold);color:var(--navy)}
+  .btn.ghost{background:#fff;color:var(--navy);border:1px solid var(--mist)}
+  .btn:hover{opacity:.92}
+  .err{color:var(--red);font-size:13.5px;margin-top:10px;min-height:20px}
+  .ok{color:var(--green);font-size:13.5px;margin-top:10px}
+  .tabs{display:flex;gap:8px;margin:18px 0}
+  .tabs button{padding:9px 18px;border-radius:20px;border:1px solid var(--mist);background:#fff;cursor:pointer;font-size:14px}
+  .tabs button.on{background:var(--navy);color:#fff;border-color:var(--navy)}
+  .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+  .stat{background:#fff;border:1px solid var(--mist);border-radius:12px;padding:18px}
+  .stat b{display:block;font-family:Georgia,serif;font-size:24px;color:var(--navy)}
+  .stat span{font-size:12px;color:var(--slate);letter-spacing:.5px}
+  .keybox{display:flex;gap:10px;align-items:center;background:#0d1526;color:#d7e0ec;border-radius:8px;padding:14px 16px;font-family:Consolas,monospace;font-size:13.5px;word-break:break-all}
+  .keybox button{flex-shrink:0;background:var(--gold);border:none;border-radius:5px;padding:7px 12px;cursor:pointer;font-weight:700;color:var(--navy)}
+  table{width:100%;border-collapse:collapse;font-size:14px}
+  th{text-align:left;color:var(--slate);font-size:12px;letter-spacing:.5px;padding:8px 6px;border-bottom:2px solid var(--mist)}
+  td{padding:9px 6px;border-bottom:1px solid #eef0f3}
+  .pill{display:inline-block;padding:2px 10px;border-radius:20px;font-size:12px;font-weight:700}
+  .pill.cn{background:#e6f0ff;color:#1d4ed8}.pill.us{background:#fef3c7;color:#92400e}
+  .code{background:#0d1526;color:#d7e0ec;border-radius:10px;padding:18px 20px;font-family:Consolas,monospace;font-size:13px;line-height:1.7;overflow-x:auto;white-space:pre}
+  .hidden{display:none}
+  footer{padding:22px 0;color:var(--slate);font-size:12.5px;text-align:center}
+  @media(max-width:760px){.grid{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap nav">
+    <div class="brand"><div class="mark">南</div><div><b>Nanhai Digital Port</b><br><span>南海数港 · 客户门户</span></div></div>
+    <div><button id="logoutBtn" class="hidden" onclick="logout()">退出登录</button></div>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <!-- ===== 登录 / 注册 ===== -->
+  <div id="authView">
+    <div class="card" style="max-width:520px;margin:0 auto">
+      <h1>欢迎来到南海数港</h1>
+      <p class="muted">一个接口，调用中国与美国的主流大模型。邮箱注册即可开通租户。</p>
+      <div class="tabs">
+        <button id="tabLogin" class="on" onclick="showTab('login')">登录</button>
+        <button id="tabRegister" onclick="showTab('register')">注册新租户</button>
+      </div>
+      <div id="loginForm">
+        <label>邮箱</label>
+        <input id="loginEmail" type="email" placeholder="you@company.com" autocomplete="email">
+        <label>密码</label>
+        <input id="loginPass" type="password" placeholder="至少 8 位" autocomplete="current-password">
+        <div class="err" id="loginErr"></div>
+        <button class="btn" onclick="doLogin()">登录</button>
+        <p class="muted" style="margin-top:14px">管理员？<a href="#" onclick="showAdminLogin(event)">管理员登录</a></p>
+      </div>
+      <div id="registerForm" class="hidden">
+        <label>公司 / 租户名</label>
+        <input id="regTenant" type="text" placeholder="例如：XX科技有限公司">
+        <label>邮箱</label>
+        <input id="regEmail" type="email" placeholder="you@company.com" autocomplete="email">
+        <label>密码（至少 8 位）</label>
+        <input id="regPass" type="password" placeholder="至少 8 位" autocomplete="new-password">
+        <div class="err" id="regErr"></div>
+        <div class="ok" id="regOk"></div>
+        <button class="btn gold" onclick="doRegister()">注册并开通</button>
+        <p class="muted" style="margin-top:14px">注册即开通租户并生成 API Key；预付款到账后由管理员充余额开通额度。</p>
+      </div>
+      <div id="adminForm" class="hidden">
+        <label>管理员密码</label>
+        <input id="adminPass" type="password" placeholder="管理员密码">
+        <div class="err" id="adminErr"></div>
+        <button class="btn" onclick="doAdminLogin()">管理员登录</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 租户仪表盘 ===== -->
+  <div id="dashView" class="hidden">
+    <div style="display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:10px">
+      <h1 id="dashTitle">我的租户</h1>
+      <span class="muted" id="dashEmail"></span>
+    </div>
+    <div class="grid" style="margin:20px 0">
+      <div class="stat"><b id="stBalance">¥0</b><span>预付款余额（人民币）</span></div>
+      <div class="stat"><b id="stSpend">—</b><span>网关已用花费（美元）</span></div>
+      <div class="stat"><b id="stBudget">—</b><span>Key 预算上限（美元）</span></div>
+      <div class="stat"><b id="stStatus">—</b><span>租户状态</span></div>
+    </div>
+
+    <div class="card">
+      <h2>我的 API Key</h2>
+      <p class="muted">用这把 Key 调用统一接口。Key 只显示一次完整内容，请妥善保存；泄露请联系技术支持吊销重发。</p>
+      <div class="keybox" style="margin-top:12px"><span id="apiKey" style="flex:1">—</span><button onclick="copyKey()">复制</button></div>
+      <p class="muted" id="litellmKeyLine" style="margin-top:10px"></p>
+      <h3 style="margin-top:22px">调用示例（OpenAI 兼容）</h3>
+      <div class="code">curl https://api.nanhai.example/v1/chat/completions \
+  -H "Authorization: Bearer &lt;你的 Key&gt;" \
+  -H "Content-Type: application/json" \
+  -d '{"model": "gpt-4o", "messages": [{"role": "user", "content": "你好"}]}'
+
+# 换模型只改一个词：
+#   "model": "deepseek-chat"     # DeepSeek
+#   "model": "qwen-max"          # 通义千问
+#   "model": "claude-sonnet-4-5" # Anthropic</div>
+    </div>
+
+    <div class="card">
+      <h2>模型目录</h2>
+      <p class="muted">中国模型与美国模型全部走同一个接口。单价以签约时厂商官方价格页为准。</p>
+      <div style="margin-top:14px;overflow-x:auto"><table>
+        <thead><tr><th>模型</th><th>厂商</th><th>地区</th><th>说明</th></tr></thead>
+        <tbody id="modelRows"></tbody>
+      </table></div>
+    </div>
+
+    <div class="card">
+      <h2>账单与充值记录</h2>
+      <p class="muted">预付款充值与扣费记录。充值请联系技术支持：<a href="mailto:sales@aaronalphax.com">sales@aaronalphax.com</a></p>
+      <div style="margin-top:14px;overflow-x:auto"><table>
+        <thead><tr><th>类型</th><th>金额（人民币）</th><th>备注</th><th>时间</th></tr></thead>
+        <tbody id="ledgerRows"><tr><td colspan="4" class="muted">暂无记录</td></tr></tbody>
+      </table></div>
+    </div>
+  </div>
+
+  <!-- ===== 管理员视图 ===== -->
+  <div id="adminView" class="hidden">
+    <h1>管理员 · 租户管理</h1>
+    <p class="muted">查看全部租户、给租户充值。技术支持：sales@aaronalphax.com</p>
+    <div class="card">
+      <h2>全部租户</h2>
+      <div style="overflow-x:auto"><table>
+        <thead><tr><th>ID</th><th>邮箱</th><th>租户名</th><th>余额（¥）</th><th>状态</th><th>注册时间</th><th>操作</th></tr></thead>
+        <tbody id="tenantRows"></tbody>
+      </table></div>
+    </div>
+  </div>
+
+</main>
+
+<footer>
+  © 2026 Nanhai Digital Port （南海数港） · 技术支持 sales@aaronalphax.com<br>
+  南海数港是独立的 API 聚合平台，不是任何模型厂商的官方合作伙伴，除非另有正式协议。
+</footer>
+
+<script>
+const $ = id => document.getElementById(id);
+let me = null;
+
+async function api(path, method, body){
+  const r = await fetch(path, {method: method||'GET',
+    headers:{'Content-Type':'application/json'},
+    body: body?JSON.stringify(body):undefined});
+  const j = await r.json().catch(()=>({}));
+  if(!r.ok) throw new Error(j.error || ('请求失败（'+r.status+'）'));
+  return j;
+}
+function showTab(t){
+  $('tabLogin').classList.toggle('on', t==='login');
+  $('tabRegister').classList.toggle('on', t==='register');
+  $('loginForm').classList.toggle('hidden', t!=='login');
+  $('registerForm').classList.toggle('hidden', t!=='register');
+  $('adminForm').classList.add('hidden');
+}
+function showAdminLogin(e){ e.preventDefault(); $('loginForm').classList.add('hidden'); $('registerForm').classList.add('hidden'); $('adminForm').classList.remove('hidden'); }
+function show(view){
+  ['authView','dashView','adminView'].forEach(v=>$(v).classList.add('hidden'));
+  $(view).classList.remove('hidden');
+  $('logoutBtn').classList.toggle('hidden', view==='authView');
+}
+async function doLogin(){
+  $('loginErr').textContent='';
+  try{
+    await api('/api/login','POST',{email:$('loginEmail').value, password:$('loginPass').value});
+    await loadMe();
+  }catch(e){ $('loginErr').textContent = e.message; }
+}
+async function doRegister(){
+  $('regErr').textContent=''; $('regOk').textContent='';
+  try{
+    const j = await api('/api/register','POST',{email:$('regEmail').value, password:$('regPass').value, tenant_name:$('regTenant').value});
+    $('regOk').textContent = '注册成功，租户已开通。' + (j.litellm_provisioned ? '网关 Key 已同步。' : '网关 Key 待管理员同步。');
+    await loadMe();
+  }catch(e){ $('regErr').textContent = e.message; }
+}
+async function doAdminLogin(){
+  $('adminErr').textContent='';
+  try{ await api('/api/admin/login','POST',{password:$('adminPass').value}); await loadAdmin(); }
+  catch(e){ $('adminErr').textContent = e.message; }
+}
+async function logout(){ try{ await api('/api/logout','POST',{}); }catch(e){} me=null; show('authView'); }
+function copyKey(){
+  const k = $('apiKey').textContent;
+  if(navigator.clipboard) navigator.clipboard.writeText(k);
+  else { const t=document.createElement('textarea'); t.value=k; document.body.appendChild(t); t.select(); document.execCommand('copy'); t.remove(); }
+  alert('API Key 已复制');
+}
+function fmtTime(ts){ return ts ? new Date(ts*1000).toLocaleString('zh-CN') : '—'; }
+async function loadMe(){
+  me = await api('/api/me');
+  if(me.is_admin) return loadAdmin();
+  $('dashTitle').textContent = me.tenant_name;
+  $('dashEmail').textContent = me.email;
+  $('stBalance').textContent = '¥' + Number(me.balance_cny||0).toLocaleString('zh-CN');
+  const sp = me.litellm_spend;
+  $('stSpend').textContent = sp && sp.spend_usd!=null ? '$'+sp.spend_usd : '—';
+  $('stBudget').textContent = sp && sp.max_budget_usd!=null ? '$'+sp.max_budget_usd : '—';
+  $('stStatus').textContent = me.status==='active' ? '正常' : me.status;
+  $('apiKey').textContent = me.litellm_key || me.api_key;
+  $('litellmKeyLine').textContent = me.litellm_key
+    ? '网关 Key 已同步（LiteLLM 虚拟 Key），直接可用。'
+    : '当前显示的是门户 Key；网关虚拟 Key 待管理员在 LiteLLM 同步后自动更新。';
+  const models = (await api('/api/models')).models;
+  $('modelRows').innerHTML = models.map(m=>`<tr><td><b>${m.name}</b></td><td>${m.provider}</td><td><span class="pill ${m.region==='CN'?'cn':'us'}">${m.region==='CN'?'中国':'美国'}</span></td><td class="muted">${m.note}</td></tr>`).join('');
+  const led = (await api('/api/ledger')).ledger;
+  $('ledgerRows').innerHTML = led.length ? led.map(r=>`<tr><td>${r.kind==='topup'?'充值':'扣费'}</td><td>${r.kind==='topup'?'+':'−'}¥${Number(r.amount_cny).toLocaleString('zh-CN')}</td><td class="muted">${r.note||''}</td><td class="muted">${fmtTime(r.created_at)}</td></tr>`).join('')
+    : '<tr><td colspan="4" class="muted">暂无记录</td></tr>';
+  show('dashView');
+}
+async function loadAdmin(){
+  const t = (await api('/api/admin/tenants')).tenants;
+  $('tenantRows').innerHTML = t.map(x=>`<tr><td>${x.id}</td><td>${x.email}</td><td>${x.tenant_name}</td><td>¥${Number(x.balance_cny).toLocaleString('zh-CN')}</td><td>${x.status}</td><td class="muted">${fmtTime(x.created_at)}</td><td><button onclick="topup(${x.id})">充值</button></td></tr>`).join('') || '<tr><td colspan="7" class="muted">暂无租户</td></tr>';
+  show('adminView');
+}
+async function topup(id){
+  const v = prompt('给租户 #' + id + ' 充值多少人民币？（扣费填负数）');
+  if(v===null || v==='' || isNaN(+v)) return;
+  try{ await api('/api/admin/topup','POST',{user_id:id, amount_cny:+v, note:'管理员充值'}); await loadAdmin(); }
+  catch(e){ alert(e.message); }
+}
+(async()=>{ try{ await loadMe(); }catch(e){ show('authView'); } })();
+</script>
+</body>
+</html>
