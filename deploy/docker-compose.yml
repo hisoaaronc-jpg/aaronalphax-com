@@ -1,0 +1,110 @@
+# 南海数港 Nanhai Digital Port — API 平台部署包
+# 基于 LiteLLM Proxy（MIT 开源，BerriAI，美国旧金山）
+# 上游文档：https://docs.litellm.ai/docs/proxy/docker_quick_start
+# 用法：cp .env.example .env ，填好密钥后 docker compose up -d
+
+services:
+  litellm:
+    image: ghcr.io/berriai/litellm:main-stable
+    container_name: nanhai-litellm
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:4000:4000"
+    environment:
+      # 网关主密钥（也是 Admin UI 的密码），必填，见 .env
+      - LITELLM_MASTER_KEY=${LITELLM_MASTER_KEY}
+      # 用于加密存入数据库的上游 API Key，必填；一旦设定不可改，改了旧密钥全失效
+      - LITELLM_SALT_KEY=${LITELLM_SALT_KEY}
+      # 数据库连接（虚拟 Key / 团队 / 预算 / 用量统计全靠它）
+      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
+      # 上游厂商 API Key（全部用占位符，部署时填真实值；也可留空、改走 Admin UI 添加）
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
+      - GEMINI_API_KEY=${GEMINI_API_KEY:-}
+      - XAI_API_KEY=${XAI_API_KEY:-}
+      - DEEPSEEK_API_KEY=${DEEPSEEK_API_KEY:-}
+      - DASHSCOPE_API_KEY=${DASHSCOPE_API_KEY:-}
+      - ZHIPU_API_KEY=${ZHIPU_API_KEY:-}
+      - MOONSHOT_API_KEY=${MOONSHOT_API_KEY:-}
+      - BAIDU_API_KEY=${BAIDU_API_KEY:-}
+      # 存储后端（LiteLLM 需要显式开启数据库存储）
+      - STORE_MODEL_IN_DB=True
+      # Redis 缓存主机名（语义缓存用；见 litellm_config.yaml 的 cache_params）
+      - REDIS_HOST=${REDIS_HOST:-redis}
+    volumes:
+      - ./litellm_config.yaml:/app/config.yaml:ro
+    command: ["--config", "/app/config.yaml", "--port", "4000", "--detailed_debug"]
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:4000/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  db:
+    image: postgres:16
+    container_name: nanhai-litellm-db
+    restart: unless-stopped
+    environment:
+      - POSTGRES_DB=${POSTGRES_DB:-litellm}
+      - POSTGRES_USER=${POSTGRES_USER:-llmproxy}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    volumes:
+      - litellm_db:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-llmproxy} -d ${POSTGRES_DB:-litellm}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # 可选：缓存与限流后端（语义缓存、RPM/TPM 限流需要它；不用可注释掉）
+  redis:
+    image: redis:7-alpine
+    container_name: nanhai-litellm-redis
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - litellm_redis:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # 南海数港客户门户：邮箱+密码注册登录、租户仪表盘（Key / 余额 / 用量 / 账单）
+  portal:
+    build:
+      context: ../portal
+      dockerfile: Dockerfile
+    container_name: nanhai-portal
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8080:8080"
+    environment:
+      - PORT=8080
+      - DB_PATH=/data/portal.db
+      - LITELLM_URL=http://litellm:4000
+      - LITELLM_MASTER_KEY=${LITELLM_MASTER_KEY}
+      # 上线前务必改掉，见 .env
+      - ADMIN_PASSWORD=${PORTAL_ADMIN_PASSWORD:-changeme}
+    volumes:
+      - portal_data:/data
+    depends_on:
+      litellm:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:8080/api/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+
+volumes:
+  litellm_db:
+  litellm_redis:
+  portal_data:
